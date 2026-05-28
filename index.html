@@ -916,14 +916,35 @@ function closeProject() {
 // Close on Escape key
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeProject(); });
 
-function handleSend(btn) {
+async function handleSend(btn) {
   const inputs = document.querySelectorAll('.form-input, .form-textarea');
   let valid = true;
   inputs.forEach(i => { if (!i.value.trim()) { i.style.borderColor = 'rgba(184,100,100,0.4)'; valid = false; } else { i.style.borderColor = ''; } });
   if (!valid) return;
-  btn.textContent = 'Message Sent ✓';
-  btn.style.background = 'rgba(124,158,181,0.8)';
+
+  const [name, email, subject, message] = [...inputs].map(i => i.value.trim());
+
+  btn.textContent = 'Sending...';
   btn.disabled = true;
+
+  try {
+    const res = await fetch('https://formspree.io/f/xdajyppp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ name, email, subject, message })
+    });
+    if (res.ok) {
+      btn.textContent = 'Message Sent ✓';
+      btn.style.background = 'rgba(124,158,181,0.8)';
+      inputs.forEach(i => i.value = '');
+    } else {
+      btn.textContent = 'Error — Try Again';
+      btn.disabled = false;
+    }
+  } catch {
+    btn.textContent = 'Error — Try Again';
+    btn.disabled = false;
+  }
 }
 </script>
 </body>
